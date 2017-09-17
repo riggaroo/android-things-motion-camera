@@ -15,9 +15,12 @@ class MotionSensor(private val motionListener: MotionListener,
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun start() {
+        //Receive data from the sensor - DIRECTION_IN
         motionSensorGpioPin.setDirection(Gpio.DIRECTION_IN)
+        //High voltage means movement has been detected
         motionSensorGpioPin.setActiveType(Gpio.ACTIVE_HIGH)
-        motionSensorGpioPin.setEdgeTriggerType(Gpio.EDGE_RISING)
+        //The trigger we want, from high to low so EDGE_RISING - if we wanted to receive both low and high EDGE_BOTH
+        motionSensorGpioPin.setEdgeTriggerType(Gpio.EDGE_BOTH)
         motionSensorGpioPin.registerGpioCallback(object : GpioCallback() {
             override fun onGpioEdge(gpio: Gpio?): Boolean {
                 gpio?.let {

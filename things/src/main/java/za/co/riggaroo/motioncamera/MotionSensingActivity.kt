@@ -33,8 +33,8 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
 
         val peripheralManagerService = PeripheralManagerService()
 
-        //  ledGpio = peripheralManagerService.openGpio("BCM21")
-        // ledGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
+        ledGpio = peripheralManagerService.openGpio("GPIO_174")
+        ledGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
 
         val motionSensorPin = peripheralManagerService.openGpio("GPIO_35")
         lifecycle.addObserver(MotionSensor(this, motionSensorPin))
@@ -73,12 +73,11 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
     override fun onMotionDetected() {
         Log.d(ACT_TAG, "onMotionDetected")
         camera.takePicture()
-
-       // ledGpio.value = true
+        ledGpio.value = true
     }
 
     override fun onMotionStopped() {
         Log.d(ACT_TAG, "onMotionStopped")
-    //    ledGpio.value = false
+        ledGpio.value = false
     }
 }
