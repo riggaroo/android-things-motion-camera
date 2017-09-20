@@ -11,6 +11,8 @@ import android.util.Log
 import android.widget.ImageView
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.PeripheralManagerService
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.storage.FirebaseStorage
 import za.co.riggaroo.motioncamera.camera.CustomCamera
 
 
@@ -52,18 +54,13 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
         val imageBytes = ByteArray(imageBuffer.remaining())
         imageBuffer.get(imageBytes)
         image.close()
+        val bitmap = getBitmapFromByteArray(imageBytes)
+        motionImage.setImageBitmap(bitmap)
 
-        motionImage.setImageBitmap(getBitmapFromByteArray(imageBytes))
-        //write log to firebase
+        writeToFirebase(imageBytes)
 
     }
 
-    private fun getBitmapFromByteArray(imageBytes: ByteArray): Bitmap {
-        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-        val matrix = Matrix()
-        matrix.postRotate(180f)
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-    }
 
     private fun setupCamera() {
         camera = CustomCamera.getInstance()
@@ -72,6 +69,7 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
 
     override fun onMotionDetected() {
         Log.d(ACT_TAG, "onMotionDetected")
+
         camera.takePicture()
         ledGpio.value = true
     }
@@ -79,5 +77,31 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
     override fun onMotionStopped() {
         Log.d(ACT_TAG, "onMotionStopped")
         ledGpio.value = false
+    }
+
+    private fun writeToFirebase(imageBytes: ByteArray) {
+        val storageRef = FirebaseStorage.getInstance().getReference("motion")
+        val riversRef = storageRef.child("images/motion_img_" + System.currentTimeMillis() + ".jpg")
+        val uploadTask = riversRef.putBytes(imageBytes)
+
+        uploadTask.addOnFailureListener {
+            Log.d(ACT_TAG, "onFailure upload Image")
+        }.addOnSuccessListener { taskSnapshot ->
+            Log.d(ACT_TAG, "onSuccess upload Image")
+            val downloadUrl = taskSnapshot.downloadUrl
+            val ref = FirebaseDatabase.getInstance().getReference("motion-logs").push()
+
+            ref.setValue(FirebaseImageLog(System.currentTimeMillis(), downloadUrl.toString()))
+        }
+
+    }
+
+    data class FirebaseImageLog(val timestamp: Long, val imageRef: String)
+
+    private fun getBitmapFromByteArray(imageBytes: ByteArray): Bitmap {
+        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        val matrix = Matrix()
+        matrix.postRotate(180f)
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 }
