@@ -14,16 +14,16 @@ class MotionSensingViewModel : ViewModel() {
 
     fun uploadMotionImage(imageBytes: ByteArray) {
         val storageRef = FirebaseStorage.getInstance().getReference(FIREBASE_MOTION_REF)
-        val riversRef = storageRef.child(FIREBASE_IMAGE_PREFIX + System.currentTimeMillis() + ".jpg")
-        val uploadTask = riversRef.putBytes(imageBytes)
+        val imageStorageRef = storageRef.child(FIREBASE_IMAGE_PREFIX + System.currentTimeMillis() + ".jpg")
+        val uploadTask = imageStorageRef.putBytes(imageBytes)
 
         uploadTask.addOnFailureListener {
             Log.d(TAG, "onFailure uploadMotionImage")
-        }.addOnSuccessListener { taskSnapshot ->
+        }.addOnSuccessListener {
             Log.d(TAG, "onSuccess uploadMotionImage")
-            val downloadUrl = taskSnapshot.downloadUrl
+            val downloadUrl = imageStorageRef.path
             val ref = FirebaseDatabase.getInstance().getReference(FIREBASE_MOTION_LOGS).push()
-            ref.setValue(FirebaseImageLog(System.currentTimeMillis(), downloadUrl.toString()))
+            ref.setValue(FirebaseImageLog(System.currentTimeMillis(), downloadUrl))
         }
 
     }

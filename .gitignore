@@ -23,3 +23,10 @@
 mobile/google-services.json
 
 things/google-services.json
+
+cloud-functions/functions/node_modules
+cloud-functions/node_modules
+
+cloud-functions/functions/serviceAccountKey.json
+
+cloud-functions/.firebaserc
