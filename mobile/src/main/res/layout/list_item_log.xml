@@ -9,7 +9,7 @@
         android:id="@+id/image_view_screenshot"
         android:layout_width="0dp"
         android:layout_height="150dp"
-        android:layout_marginLeft="16dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginTop="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="w,4:3"

@@ -1,5 +1,6 @@
 package za.co.riggaroo.motioncamera
 
+import android.arch.lifecycle.ViewModelProviders
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -11,20 +12,15 @@ import android.util.Log
 import android.widget.ImageView
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.PeripheralManagerService
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.storage.FirebaseStorage
 import za.co.riggaroo.motioncamera.camera.CustomCamera
 
 
 class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
 
-
-    private val ACT_TAG: String = "MotionSensingActivity"
-
     private lateinit var ledGpio: Gpio
-
     private lateinit var camera: CustomCamera
-    private lateinit var motionImage: ImageView
+    private lateinit var motionImageView: ImageView
+    private lateinit var motionViewModel: MotionSensingViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,20 +28,27 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
 
         setupUIElements()
         setupCamera()
+        setupActuators()
+        setupSensors()
+        setupViewModel()
+    }
 
+    private fun setupViewModel() {
+        motionViewModel = ViewModelProviders.of(this).get(MotionSensingViewModel::class.java)
+    }
+
+    private fun setupSensors() {
+        lifecycle.addObserver(MotionSensor(this, MOTION_SENSOR_GPIO_PIN))
+    }
+
+    private fun setupActuators() {
         val peripheralManagerService = PeripheralManagerService()
-
-        ledGpio = peripheralManagerService.openGpio("GPIO_174")
+        ledGpio = peripheralManagerService.openGpio(LED_GPIO_PIN)
         ledGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
-
-        val motionSensorPin = peripheralManagerService.openGpio("GPIO_35")
-        lifecycle.addObserver(MotionSensor(this, motionSensorPin))
-
     }
 
     private fun setupUIElements() {
-        motionImage = findViewById(R.id.image_view_motion)
-
+        motionImageView = findViewById(R.id.image_view_motion)
     }
 
     private val onImageAvailableListener = ImageReader.OnImageAvailableListener { reader ->
@@ -55,10 +58,8 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
         imageBuffer.get(imageBytes)
         image.close()
         val bitmap = getBitmapFromByteArray(imageBytes)
-        motionImage.setImageBitmap(bitmap)
-
-        writeToFirebase(imageBytes)
-
+        motionImageView.setImageBitmap(bitmap)
+        motionViewModel.uploadMotionImage(imageBytes)
     }
 
 
@@ -79,29 +80,17 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
         ledGpio.value = false
     }
 
-    private fun writeToFirebase(imageBytes: ByteArray) {
-        val storageRef = FirebaseStorage.getInstance().getReference("motion")
-        val riversRef = storageRef.child("images/motion_img_" + System.currentTimeMillis() + ".jpg")
-        val uploadTask = riversRef.putBytes(imageBytes)
-
-        uploadTask.addOnFailureListener {
-            Log.d(ACT_TAG, "onFailure upload Image")
-        }.addOnSuccessListener { taskSnapshot ->
-            Log.d(ACT_TAG, "onSuccess upload Image")
-            val downloadUrl = taskSnapshot.downloadUrl
-            val ref = FirebaseDatabase.getInstance().getReference("motion-logs").push()
-
-            ref.setValue(FirebaseImageLog(System.currentTimeMillis(), downloadUrl.toString()))
-        }
-
-    }
-
-    data class FirebaseImageLog(val timestamp: Long, val imageRef: String)
 
     private fun getBitmapFromByteArray(imageBytes: ByteArray): Bitmap {
         val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         val matrix = Matrix()
         matrix.postRotate(180f)
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
+    companion object {
+        val ACT_TAG: String = "MotionSensingActivity"
+        val LED_GPIO_PIN = "GPIO_174"
+        val MOTION_SENSOR_GPIO_PIN = "GPIO_35"
     }
 }

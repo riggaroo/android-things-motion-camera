@@ -5,13 +5,16 @@ import android.arch.lifecycle.LifecycleObserver
 import android.arch.lifecycle.OnLifecycleEvent
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
+import com.google.android.things.pio.PeripheralManagerService
 
 /**
  * @author rebeccafranks
  * @since 2017/09/15.
  */
 class MotionSensor(private val motionListener: MotionListener,
-                   private val motionSensorGpioPin: Gpio) : LifecycleObserver {
+                   motionSensorPinNumber: String) : LifecycleObserver {
+
+    private val motionSensorGpioPin: Gpio = PeripheralManagerService().openGpio(motionSensorPinNumber)
 
     @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun start() {
@@ -19,7 +22,7 @@ class MotionSensor(private val motionListener: MotionListener,
         motionSensorGpioPin.setDirection(Gpio.DIRECTION_IN)
         //High voltage means movement has been detected
         motionSensorGpioPin.setActiveType(Gpio.ACTIVE_HIGH)
-        //The trigger we want, from high to low so EDGE_RISING - if we wanted to receive both low and high EDGE_BOTH
+        //The trigger we want to receive both low and high triggers so EDGE_BOTH
         motionSensorGpioPin.setEdgeTriggerType(Gpio.EDGE_BOTH)
         motionSensorGpioPin.registerGpioCallback(object : GpioCallback() {
             override fun onGpioEdge(gpio: Gpio?): Boolean {
