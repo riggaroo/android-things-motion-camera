@@ -19,6 +19,7 @@ class LogsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     private val imageViewLog: ImageView = view.findViewById(R.id.image_view_screenshot)
     private val timeStampTextView: TextView = view.findViewById(R.id.text_view_timestamp)
+    private val facesDetectedTextView: TextView = view.findViewById(R.id.text_view_faces)
 
     fun setLog(log: FirebaseImageLog) {
         log.timestamp?.let {
@@ -33,6 +34,14 @@ class LogsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
                     .load(FirebaseStorage.getInstance().getReference(it))
                     .into(imageViewLog)
         }
+        log.containsFace?.let {
+            facesDetectedTextView.text = if (it) {
+                facesDetectedTextView.context.getString(R.string.faces_detected)
+            } else {
+                facesDetectedTextView.context.getString(R.string.no_faces_detected)
+            }
+        }
+
 
     }
 
