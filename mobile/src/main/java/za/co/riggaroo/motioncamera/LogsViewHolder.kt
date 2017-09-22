@@ -30,7 +30,7 @@ class LogsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         log.imageRef?.let {
             Glide.with(imageViewLog.context)
                     .using(FirebaseImageLoader())
-                    .load(FirebaseStorage.getInstance().getReferenceFromUrl(it))
+                    .load(FirebaseStorage.getInstance().getReference(it))
                     .into(imageViewLog)
         }
 
