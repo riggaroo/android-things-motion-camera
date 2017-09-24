@@ -2,7 +2,10 @@ package za.co.riggaroo.motioncamera.camera
 
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
+import android.graphics.Matrix
 import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.Handler
@@ -17,19 +20,14 @@ class CustomCamera : AutoCloseable {
     private var mImageReader: ImageReader? = null
     private var mCameraDevice: CameraDevice? = null
     private var mCaptureSession: CameraCaptureSession? = null
+    private lateinit var imageCapturedListener: ImageCapturedListener
 
-    companion object InstanceHolder {
-        val IMAGE_WIDTH = 640
-        val IMAGE_HEIGHT = 480
-        val MAX_IMAGES = 1
-        private val mCamera = CustomCamera()
 
-        fun getInstance(): CustomCamera {
-            return mCamera
-        }
+    interface ImageCapturedListener {
+        fun onImageCaptured(bitmap: Bitmap)
     }
 
-    fun initializeCamera(context: Context, backgroundHandler: Handler, imageListener: ImageReader.OnImageAvailableListener) {
+    fun initializeCamera(context: Context, backgroundHandler: Handler, imageListener: ImageCapturedListener) {
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         var camIds = emptyArray<String>()
         try {
@@ -45,7 +43,8 @@ class CustomCamera : AutoCloseable {
         val id = camIds[0]
         mImageReader = ImageReader.newInstance(IMAGE_WIDTH, IMAGE_HEIGHT,
                 ImageFormat.JPEG, MAX_IMAGES)
-        mImageReader?.setOnImageAvailableListener(imageListener, backgroundHandler)
+        imageCapturedListener = imageListener
+        mImageReader?.setOnImageAvailableListener(imageAvailableListener, backgroundHandler)
         try {
             manager.openCamera(id, mStateCallback, backgroundHandler)
         } catch (cae: Exception) {
@@ -53,11 +52,30 @@ class CustomCamera : AutoCloseable {
         }
     }
 
+    private val imageAvailableListener = ImageReader.OnImageAvailableListener { reader ->
+        val image = reader.acquireLatestImage()
+        val imageBuffer = image.planes[0].buffer
+        val imageBytes = ByteArray(imageBuffer.remaining())
+        imageBuffer.get(imageBytes)
+        image.close()
+        val bitmap = getBitmapFromByteArray(imageBytes)
+        imageCapturedListener.onImageCaptured(bitmap)
+    }
+
+
     fun takePicture() {
         mCameraDevice?.createCaptureSession(
                 arrayListOf(mImageReader?.surface),
                 mSessionCallback,
                 null)
+    }
+
+    private fun getBitmapFromByteArray(imageBytes: ByteArray): Bitmap {
+        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        val matrix = Matrix()
+        //For some reason the bitmap is rotated the incorrect way
+        matrix.postRotate(180f)
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
     private fun triggerImageCapture() {
@@ -124,5 +142,16 @@ class CustomCamera : AutoCloseable {
 
     override fun close() {
         mCameraDevice?.close()
+    }
+
+    companion object InstanceHolder {
+        val IMAGE_WIDTH = 640
+        val IMAGE_HEIGHT = 480
+        val MAX_IMAGES = 1
+        private val mCamera = CustomCamera()
+
+        fun getInstance(): CustomCamera {
+            return mCamera
+        }
     }
 }

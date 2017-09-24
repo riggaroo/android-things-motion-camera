@@ -2,9 +2,6 @@ package za.co.riggaroo.motioncamera
 
 import android.arch.lifecycle.ViewModelProviders
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.media.ImageReader
 import android.os.Bundle
 import android.os.Handler
 import android.support.v7.app.AppCompatActivity
@@ -28,11 +25,12 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
     private lateinit var buttonArmSystem: Button
     private lateinit var motionViewModel: MotionSensingViewModel
     private lateinit var motionSensor: MotionSensor
+    private var armed: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_motion_sensing)
-
+        setTitle(R.string.app_name)
         setupUIElements()
         setupCamera()
         setupActuators()
@@ -55,7 +53,6 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
         ledGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
     }
 
-    private var armed: Boolean = false
 
     private fun setupUIElements() {
         motionImageView = findViewById(R.id.image_view_motion)
@@ -82,21 +79,17 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
         })
     }
 
-    private val onImageAvailableListener = ImageReader.OnImageAvailableListener { reader ->
-        val image = reader.acquireLatestImage()
-        val imageBuffer = image.planes[0].buffer
-        val imageBytes = ByteArray(imageBuffer.remaining())
-        imageBuffer.get(imageBytes)
-        image.close()
-        val bitmap = getBitmapFromByteArray(imageBytes)
-        motionImageView.setImageBitmap(bitmap)
-        motionViewModel.uploadMotionImage(imageBytes)
+    private val imageAvailableListener = object : CustomCamera.ImageCapturedListener {
+        override fun onImageCaptured(bitmap: Bitmap) {
+            motionImageView.setImageBitmap(bitmap)
+            motionViewModel.uploadMotionImage(bitmap)
+        }
     }
 
 
     private fun setupCamera() {
         camera = CustomCamera.getInstance()
-        camera.initializeCamera(this, Handler(), onImageAvailableListener)
+        camera.initializeCamera(this, Handler(), imageAvailableListener)
     }
 
     override fun onMotionDetected() {
@@ -114,13 +107,6 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
         ledGpio.value = false
     }
 
-
-    private fun getBitmapFromByteArray(imageBytes: ByteArray): Bitmap {
-        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-        val matrix = Matrix()
-        matrix.postRotate(180f)
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-    }
 
     companion object {
         val ACT_TAG: String = "MotionSensingActivity"

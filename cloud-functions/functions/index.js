@@ -2,14 +2,7 @@
 
 var functions = require('firebase-functions');
 var admin = require('firebase-admin');
-var googleCloud = require('google-cloud');
-const storage = googleCloud.storage({
-  projectId: 'hood-e0e7b',
-  keyFilename: 'serviceAccountKey.json'
-})
 admin.initializeApp(functions.config().firebase);
-const Vision = require('@google-cloud/vision');
-const vision = Vision();
 
 exports.annotateImage = functions.database.ref('/motion-logs/{id}')
   .onCreate(event => {

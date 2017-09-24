@@ -17,19 +17,17 @@ import com.google.firebase.messaging.RemoteMessage
  */
 class NotificationService : FirebaseMessagingService() {
 
-    private val TAG: String? = "NotificationService"
-
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: " + remoteMessage.from)
 
         if (remoteMessage.data.isNotEmpty()) {
             Log.d(TAG, "Message data payload: " + remoteMessage.data)
-            sendNotification(remoteMessage.data["title"], remoteMessage.data["body"], remoteMessage.data["imageRef"])
-
+            val title = remoteMessage.data["title"]
+            val body = remoteMessage.data["body"]
+            val imageRef = remoteMessage.data["imageRef"]
+            sendNotification(title, body, imageRef)
         }
-
     }
 
     private fun sendNotification(title: String?, messageBody: String?, imageRef: String?) {
@@ -43,7 +41,7 @@ class NotificationService : FirebaseMessagingService() {
 
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-                .setSmallIcon(R.drawable.ic_warning)
+                .setSmallIcon(getNotificationIcon())
                 .setContentTitle(title)
                 .setContentText(messageBody)
                 .setAutoCancel(true)
@@ -55,5 +53,14 @@ class NotificationService : FirebaseMessagingService() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         notificationManager.notify(12, notificationBuilder.build())
+    }
+
+    private fun getNotificationIcon(): Int {
+        val useWhiteIcon = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP
+        return if (useWhiteIcon) R.drawable.ic_warning_white else R.drawable.ic_warning
+    }
+
+    companion object {
+        private val TAG: String? = "NotificationService"
     }
 }
