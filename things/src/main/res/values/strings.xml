@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Motion Sensing Camera</string>
+    <string name="arm_system">ARM SYSTEM</string>
+    <string name="disarm_system">DISARM SYSTEM</string>
 </resources>
