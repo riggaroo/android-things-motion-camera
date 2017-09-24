@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">Motion Sensing Camera</string>
+    <string name="app_name">MotioSense</string>
     <string name="default_notification_channel_id">intruderChannel</string>
     <string name="faces_detected">faces detected</string>
     <string name="no_faces_detected">No faces detected</string>
     <string name="arm_system">Arm System</string>
-    <string name="system_unarmed">System disarmed</string>
-    <string name="system_armed">System armed</string>
+    <string name="system_unarmed">The system is disarmed</string>
+    <string name="system_armed">The system is armed</string>
 </resources>

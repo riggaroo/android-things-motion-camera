@@ -1,14 +1,13 @@
 package za.co.riggaroo.motioncamera
 
 import android.support.v7.widget.RecyclerView
+import android.text.format.DateUtils
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.firebase.ui.storage.images.FirebaseImageLoader
 import com.google.firebase.storage.FirebaseStorage
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 /**
@@ -23,9 +22,8 @@ class LogsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     fun setLog(log: FirebaseImageLog) {
         log.timestamp?.let {
-            val date = Date(it)
-            val dateFormatted = SimpleDateFormat("HH:mm:ss dd/MM/yyyy", Locale.UK)
-            timeStampTextView.text = dateFormatted.format(date)
+            val timeDifference = DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
+            timeStampTextView.text = timeDifference
 
         }
         log.imageRef?.let {

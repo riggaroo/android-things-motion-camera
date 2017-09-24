@@ -28,7 +28,6 @@ class MotionSensingViewModel : ViewModel() {
             val downloadUrl = imageStorageRef.path
             val ref = FirebaseDatabase.getInstance().getReference(FIREBASE_MOTION_LOGS).push()
             ref.setValue(FirebaseImageLog(System.currentTimeMillis(), downloadUrl))
-            imageBytes.recycle()
         }
 
     }
