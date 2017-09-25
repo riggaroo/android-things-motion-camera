@@ -81,7 +81,9 @@ class CustomCamera : AutoCloseable {
     private fun triggerImageCapture() {
         val captureBuilder = mCameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
         captureBuilder?.addTarget(mImageReader!!.surface)
+
         captureBuilder?.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
+        captureBuilder?.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_AUTO)
         Log.d(ContentValues.TAG, "Session initialized.")
         mCaptureSession?.capture(captureBuilder?.build(), mCaptureCallback, null)
     }
