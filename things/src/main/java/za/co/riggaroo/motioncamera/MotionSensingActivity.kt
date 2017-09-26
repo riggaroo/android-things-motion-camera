@@ -15,6 +15,9 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import za.co.riggaroo.motioncamera.camera.CustomCamera
+import za.co.riggaroo.motioncamera.tensorflow.Classifier
+import za.co.riggaroo.motioncamera.tensorflow.TensorFlowObjectDetectionAPIModel
+import java.io.IOException
 
 
 class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
@@ -27,6 +30,11 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
     private lateinit var motionSensor: MotionSensor
     private var armed: Boolean = false
 
+    private lateinit var classifier: Classifier
+    private val TF_OD_API_MODEL_FILE = "file:///android_asset/ssd_mobilenet_v1_android_export.pb"
+    private val TF_OD_API_LABELS_FILE = "file:///android_asset/coco_labels_list.txt"
+    private val TF_OD_API_INPUT_SIZE = 300
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_motion_sensing)
@@ -36,6 +44,16 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
         setupActuators()
         setupSensors()
         setupViewModel()
+     //   setupTensorFlowClassifier()
+    }
+
+    private fun setupTensorFlowClassifier() {
+        try {
+            classifier = TensorFlowObjectDetectionAPIModel.create(
+                    assets, TF_OD_API_MODEL_FILE, TF_OD_API_LABELS_FILE, TF_OD_API_INPUT_SIZE)
+        } catch (e: IOException) {
+            Log.e(ACT_TAG, "Exception initializing classifier!", e)
+        }
     }
 
     private fun setupViewModel() {
@@ -81,7 +99,12 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
 
     private val imageAvailableListener = object : CustomCamera.ImageCapturedListener {
         override fun onImageCaptured(bitmap: Bitmap) {
+           /* val results = classifier.recognizeImage(bitmap)
+            results.forEach { result ->
+                Log.d(ACT_TAG, "TensorFlow Result: ${result.id} - ${result.title} - ${result.confidence}")
+            }*/
             motionImageView.setImageBitmap(bitmap)
+
             motionViewModel.uploadMotionImage(bitmap)
         }
     }

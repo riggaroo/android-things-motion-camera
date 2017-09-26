@@ -41,6 +41,7 @@ dependencies {
     implementation "android.arch.lifecycle:extensions:${archVersion}"
     annotationProcessor "android.arch.lifecycle:compiler:${archVersion}"
     implementation "com.android.support:appcompat-v7:26.1.0"
+    implementation 'org.tensorflow:tensorflow-android:1.3.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

@@ -3,15 +3,20 @@ package za.co.riggaroo.motioncamera
 import android.arch.lifecycle.ViewModel
 import android.graphics.Bitmap
 import android.util.Log
+import android.widget.Toast
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
+import za.co.riggaroo.motioncamera.tensorflow.Classifier
+import za.co.riggaroo.motioncamera.tensorflow.TensorFlowObjectDetectionAPIModel
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 
 /**
  * @author rebeccafranks
  * @since 2017/09/21.
  */
-class MotionSensingViewModel : ViewModel() {
+class MotionSensingViewModel() : ViewModel() {
+
 
 
     fun uploadMotionImage(imageBytes: Bitmap) {
@@ -19,6 +24,10 @@ class MotionSensingViewModel : ViewModel() {
         val imageStorageRef = storageRef.child(FIREBASE_IMAGE_PREFIX + System.currentTimeMillis() + ".jpg")
         val stream = ByteArrayOutputStream()
         imageBytes.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+
+        //tensorflow exp
+
+
         val uploadTask = imageStorageRef.putBytes(stream.toByteArray())
 
         uploadTask.addOnFailureListener {
