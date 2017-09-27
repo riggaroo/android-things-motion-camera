@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageFormat
 import android.graphics.Matrix
 import android.hardware.camera2.*
+import android.hardware.camera2.CameraAccessException.CAMERA_ERROR
 import android.media.ImageReader
 import android.os.Handler
 import android.util.Log
@@ -25,15 +26,16 @@ class CustomCamera : AutoCloseable {
 
     fun initializeCamera(context: Context, backgroundHandler: Handler, imageListener: ImageCapturedListener) {
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        var camIds = emptyArray<String>()
+        val camIds: Array<String>
         try {
             camIds = manager.cameraIdList
         } catch (e: CameraAccessException) {
-            Log.d(TAG, "Cam access exception getting ids", e)
+            Log.e(TAG, "Cam access exception getting ids", e)
+            throw CameraAccessException(CAMERA_ERROR, "Cam access exception getting ids")
         }
         if (camIds.isEmpty()) {
-            Log.d(TAG, "No cameras found")
-            return
+            Log.e(TAG, "No cameras found")
+            throw CameraAccessException(CAMERA_ERROR, "No Cameras found")
         }
 
         val id = camIds[0]
@@ -44,7 +46,7 @@ class CustomCamera : AutoCloseable {
         try {
             manager.openCamera(id, mStateCallback, backgroundHandler)
         } catch (cae: Exception) {
-            Log.d(TAG, "Camera access exception", cae)
+            Log.e(TAG, "Camera access exception", cae)
         }
     }
 
