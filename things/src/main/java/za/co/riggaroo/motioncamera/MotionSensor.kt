@@ -7,10 +7,6 @@ import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.GpioCallback
 import com.google.android.things.pio.PeripheralManagerService
 
-/**
- * @author rebeccafranks
- * @since 2017/09/15.
- */
 class MotionSensor(private val motionListener: MotionListener,
                    motionSensorPinNumber: String) : LifecycleObserver {
 

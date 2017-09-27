@@ -1,6 +1,5 @@
 package za.co.riggaroo.motioncamera.camera
 
-import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -11,10 +10,7 @@ import android.media.ImageReader
 import android.os.Handler
 import android.util.Log
 
-/**
- * @author rebeccafranks
- * @since 2017/09/15.
- */
+
 class CustomCamera : AutoCloseable {
 
     private var mImageReader: ImageReader? = null
@@ -33,10 +29,10 @@ class CustomCamera : AutoCloseable {
         try {
             camIds = manager.cameraIdList
         } catch (e: CameraAccessException) {
-            Log.d(ContentValues.TAG, "Cam access exception getting ids", e)
+            Log.d(TAG, "Cam access exception getting ids", e)
         }
         if (camIds.isEmpty()) {
-            Log.d(ContentValues.TAG, "No cameras found")
+            Log.d(TAG, "No cameras found")
             return
         }
 
@@ -48,7 +44,7 @@ class CustomCamera : AutoCloseable {
         try {
             manager.openCamera(id, mStateCallback, backgroundHandler)
         } catch (cae: Exception) {
-            Log.d(ContentValues.TAG, "Camera access exception", cae)
+            Log.d(TAG, "Camera access exception", cae)
         }
     }
 
@@ -84,30 +80,30 @@ class CustomCamera : AutoCloseable {
 
         captureBuilder?.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
         captureBuilder?.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_AUTO)
-        Log.d(ContentValues.TAG, "Session initialized.")
+        Log.d(TAG, "Session initialized.")
         mCaptureSession?.capture(captureBuilder?.build(), mCaptureCallback, null)
     }
 
     private val mCaptureCallback = object : CameraCaptureSession.CaptureCallback() {
 
         override fun onCaptureProgressed(session: CameraCaptureSession?, request: CaptureRequest?, partialResult: CaptureResult?) {
-            Log.d(ContentValues.TAG, "Partial result")
+            Log.d(TAG, "Partial result")
         }
 
         override fun onCaptureFailed(session: CameraCaptureSession?, request: CaptureRequest?, failure: CaptureFailure?) {
-            Log.d(ContentValues.TAG, "Capture session failed")
+            Log.d(TAG, "Capture session failed")
         }
 
         override fun onCaptureCompleted(session: CameraCaptureSession?, request: CaptureRequest?, result: TotalCaptureResult?) {
             session?.close()
             mCaptureSession = null
-            Log.d(ContentValues.TAG, "Capture session closed")
+            Log.d(TAG, "Capture session closed")
         }
     }
 
     private val mSessionCallback = object : CameraCaptureSession.StateCallback() {
         override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession?) {
-            Log.w(ContentValues.TAG, "Failed to configure camera")
+            Log.w(TAG, "Failed to configure camera")
         }
 
         override fun onConfigured(cameraCaptureSession: CameraCaptureSession?) {
@@ -122,22 +118,22 @@ class CustomCamera : AutoCloseable {
 
     private val mStateCallback = object : CameraDevice.StateCallback() {
         override fun onError(cameraDevice: CameraDevice, code: Int) {
-            Log.d(ContentValues.TAG, "Camera device error, closing")
+            Log.d(TAG, "Camera device error, closing")
             cameraDevice.close()
         }
 
         override fun onOpened(cameraDevice: CameraDevice) {
-            Log.d(ContentValues.TAG, "Opened camera.")
+            Log.d(TAG, "Opened camera.")
             mCameraDevice = cameraDevice
         }
 
         override fun onDisconnected(cameraDevice: CameraDevice) {
-            Log.d(ContentValues.TAG, "Camera disconnected, closing")
+            Log.d(TAG, "Camera disconnected, closing")
             cameraDevice.close()
         }
 
         override fun onClosed(camera: CameraDevice) {
-            Log.d(ContentValues.TAG, "Closed camera, releasing")
+            Log.d(TAG, "Closed camera, releasing")
             mCameraDevice = null
         }
     }
@@ -150,6 +146,7 @@ class CustomCamera : AutoCloseable {
         val IMAGE_WIDTH = 640
         val IMAGE_HEIGHT = 480
         val MAX_IMAGES = 1
+        val TAG = "CustomCamera"
         private val mCamera = CustomCamera()
 
         fun getInstance(): CustomCamera {

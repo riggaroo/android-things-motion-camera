@@ -1,5 +1,6 @@
 package za.co.riggaroo.motioncamera
 
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -10,10 +11,6 @@ import android.widget.Button
 import android.widget.ImageView
 import com.google.android.things.pio.Gpio
 import com.google.android.things.pio.PeripheralManagerService
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import za.co.riggaroo.motioncamera.camera.CustomCamera
 
 
@@ -25,17 +22,17 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
     private lateinit var buttonArmSystem: Button
     private lateinit var motionViewModel: MotionSensingViewModel
     private lateinit var motionSensor: MotionSensor
-    private var armed: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_motion_sensing)
         setTitle(R.string.app_name)
-        setupUIElements()
+        setupViewModel()
         setupCamera()
         setupActuators()
         setupSensors()
-        setupViewModel()
+
+        setupUIElements()
     }
 
     private fun setupViewModel() {
@@ -59,23 +56,17 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
 
         buttonArmSystem = findViewById(R.id.button_arm_disarm)
         buttonArmSystem.setOnClickListener {
-            armed = !armed
-            FirebaseDatabase.getInstance().getReference("system-armed").setValue(armed)
+            motionViewModel.toggleSystemArmedStatus()
         }
-        val systemArmed = FirebaseDatabase.getInstance().getReference("system-armed")
-        systemArmed.addValueEventListener(object : ValueEventListener {
-            override fun onCancelled(p0: DatabaseError?) {
-
-            }
-
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                armed = dataSnapshot.value as Boolean
+        motionViewModel.armed.observe(this, Observer { armed ->
+            armed?.let {
                 buttonArmSystem.text = if (armed) {
                     getString(R.string.disarm_system)
                 } else {
                     getString(R.string.arm_system)
                 }
             }
+
         })
     }
 
@@ -97,9 +88,7 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
 
         ledGpio.value = true
 
-        if (armed) {
-            camera.takePicture()
-        }
+        camera.takePicture()
     }
 
     override fun onMotionStopped() {
