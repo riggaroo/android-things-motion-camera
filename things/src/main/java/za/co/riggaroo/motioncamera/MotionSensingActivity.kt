@@ -50,6 +50,10 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
         ledGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        ledGpio.close()
+    }
 
     private fun setupUIElements() {
         motionImageView = findViewById(R.id.image_view_motion)
@@ -69,18 +73,16 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
 
         })
     }
+    private fun setupCamera() {
+        camera = CustomCamera.getInstance()
+        camera.initializeCamera(this, Handler(), imageAvailableListener)
+    }
 
     private val imageAvailableListener = object : CustomCamera.ImageCapturedListener {
         override fun onImageCaptured(bitmap: Bitmap) {
             motionImageView.setImageBitmap(bitmap)
             motionViewModel.uploadMotionImage(bitmap)
         }
-    }
-
-
-    private fun setupCamera() {
-        camera = CustomCamera.getInstance()
-        camera.initializeCamera(this, Handler(), imageAvailableListener)
     }
 
     override fun onMotionDetected() {
