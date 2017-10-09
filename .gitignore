@@ -30,3 +30,13 @@ cloud-functions/node_modules
 cloud-functions/functions/serviceAccountKey.json
 
 cloud-functions/.firebaserc
+
+# NodeJS Dependency directories
+node_modules/
+assistant/fake-oauth-server-nodejs/node_modules
+# Actions on Google binary and credentials, ngrok
+creds.data
+ngrok
+
+# Firebase service account private key
+serviceAccountKey.json

@@ -16,7 +16,8 @@ import za.co.riggaroo.motioncamera.camera.CustomCamera
 
 class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
 
-    private lateinit var ledGpio: Gpio
+    private lateinit var ledMotionIndicatorGpio: Gpio
+    private lateinit var ledArmedIndicatorGpio: Gpio
     private lateinit var camera: CustomCamera
     private lateinit var motionImageView: ImageView
     private lateinit var buttonArmSystem: Button
@@ -44,15 +45,19 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
         lifecycle.addObserver(motionSensor)
     }
 
+
     private fun setupActuators() {
         val peripheralManagerService = PeripheralManagerService()
-        ledGpio = peripheralManagerService.openGpio(LED_GPIO_PIN)
-        ledGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
+        ledMotionIndicatorGpio = peripheralManagerService.openGpio(LED_GPIO_PIN)
+        ledMotionIndicatorGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
+        ledArmedIndicatorGpio = peripheralManagerService.openGpio(LED_ARMED_INDICATOR_PIN)
+        ledArmedIndicatorGpio.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        ledGpio.close()
+        ledArmedIndicatorGpio.close()
+        ledMotionIndicatorGpio.close()
     }
 
     private fun setupUIElements() {
@@ -69,10 +74,12 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
                 } else {
                     getString(R.string.arm_system)
                 }
+                ledArmedIndicatorGpio.value = armed
             }
 
         })
     }
+
     private fun setupCamera() {
         camera = CustomCamera.getInstance()
         camera.initializeCamera(this, Handler(), imageAvailableListener)
@@ -88,18 +95,19 @@ class MotionSensingActivity : AppCompatActivity(), MotionSensor.MotionListener {
     override fun onMotionDetected() {
         Log.d(ACT_TAG, "onMotionDetected")
 
-        ledGpio.value = true
+        ledMotionIndicatorGpio.value = true
 
         camera.takePicture()
     }
 
     override fun onMotionStopped() {
         Log.d(ACT_TAG, "onMotionStopped")
-        ledGpio.value = false
+        ledMotionIndicatorGpio.value = false
     }
 
 
     companion object {
+        val LED_ARMED_INDICATOR_PIN: String = "GPIO_175"
         val ACT_TAG: String = "MotionSensingActivity"
         val LED_GPIO_PIN = "GPIO_174"
         val MOTION_SENSOR_GPIO_PIN = "GPIO_35"

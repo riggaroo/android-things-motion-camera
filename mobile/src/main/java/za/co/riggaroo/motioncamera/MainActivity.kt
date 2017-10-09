@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {
         private val ORDER_BY_TIMESTAMP = "timestamp"
         private val ACT_TAG: String = "MainActivity"
         private val MOTION_LOGS_FIREBASE_REF = "motion-logs"
-        private val SYSTEM_ARMED_STATUS_FIREBASE_REF = "system-armed"
+        private val SYSTEM_ARMED_STATUS_FIREBASE_REF = "alarm/on"
     }
 
 

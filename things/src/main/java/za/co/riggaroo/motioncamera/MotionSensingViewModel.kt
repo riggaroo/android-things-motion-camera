@@ -57,7 +57,7 @@ class MotionSensingViewModel : ViewModel() {
         private val FIREBASE_MOTION_LOGS = "motion-logs"
         private val FIREBASE_IMAGE_PREFIX = "images/motion_img_"
         private val TAG = "MotionSensingViewModel"
-        private val FIREBASE_ARM_SYSTEM_NODE = "system-armed"
+        private val FIREBASE_ARM_SYSTEM_NODE = "alarm/on"
     }
 
     fun toggleSystemArmedStatus() {
